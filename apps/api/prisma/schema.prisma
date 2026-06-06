@@ -1,0 +1,220 @@
+// Loopin 数据模型 —— 对应 docs/01 Backend/Data spec 的核心数据对象。
+// MVP 用 SQLite，上 ECS 换 provider = "postgresql" + DATABASE_URL 即可。
+// 注：本 schema 是下一阶段持久化的真相来源；当前 server 的盈亏/校验接口为纯计算，尚未接库。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organizer {
+  id          String   @id @default(cuid())
+  name        String
+  whitelisted Boolean  @default(false)
+  hostProfile HostProfile?
+  events      Event[]
+  createdAt   DateTime @default(now())
+}
+
+model HostProfile {
+  id          String    @id @default(cuid())
+  organizer   Organizer @relation(fields: [organizerId], references: [id])
+  organizerId String    @unique
+  bio         String?
+  avatarUrl   String?
+  links       String?   // JSON
+}
+
+model User {
+  id            String         @id @default(cuid())
+  openid        String?        @unique // 微信 openid
+  phone         String?
+  nickname      String?
+  registrations Registration[]
+  checkIns      CheckIn[]
+}
+
+model Event {
+  id          String       @id @default(cuid())
+  organizer   Organizer    @relation(fields: [organizerId], references: [id])
+  organizerId String
+  title       String
+  status      String       @default("draft") // draft/published/closed/completed/cancelled
+  startAt     DateTime
+  city        String
+  venue       String?
+  coverUrl    String?
+  page        EventPage?
+  ticketTypes TicketType[]
+  quotas      Quota[]
+  forms       RegistrationForm[]
+  registrations Registration[]
+  budgetPlan  BudgetPlan?
+  sponsorPlan SponsorPlan?
+  channels    Channel[]
+  materials   Material[]
+  agentTasks  AgentTask[]
+  review      EventReview?
+  createdAt   DateTime     @default(now())
+}
+
+model EventPage {
+  id         String @id @default(cuid())
+  event      Event  @relation(fields: [eventId], references: [id])
+  eventId    String @unique
+  template   String
+  highlights String // JSON string[]
+  agenda     String // JSON string[]
+  faq        String // JSON {q,a}[]
+}
+
+model TicketType {
+  id        String  @id @default(cuid())
+  event     Event   @relation(fields: [eventId], references: [id])
+  eventId   String
+  name      String
+  kind      String  // free/approval/paid
+  priceCents Int    @default(0)
+  // 库存不再挂票种，改由 Quota 配额池承载（多对多），见 docs/04 §3.2
+  quotas    TicketTypeQuota[]
+  registrations Registration[]
+}
+
+// 配额池：库存独立实体，可被多个票种共享（早鸟+标准共享名额/总量封顶/子场次独立库存）
+model Quota {
+  id        String  @id @default(cuid())
+  event     Event   @relation(fields: [eventId], references: [id])
+  eventId   String
+  name      String
+  capacity  Int?    // null = 不限量
+  used      Int     @default(0) // 已成交占用；扣减用条件原子更新 + CHECK 兜底（见迁移）
+  ticketTypes TicketTypeQuota[]
+  orders    Order[]
+}
+
+// 票种 ↔ 配额 多对多
+model TicketTypeQuota {
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  ticketTypeId String
+  quota        Quota      @relation(fields: [quotaId], references: [id])
+  quotaId      String
+  @@id([ticketTypeId, quotaId])
+}
+
+model RegistrationForm {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String
+  schema  String // JSON RegistrationFormSchema
+}
+
+model Registration {
+  id           String     @id @default(cuid())
+  event        Event      @relation(fields: [eventId], references: [id])
+  eventId      String
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  ticketTypeId String
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+  status       String     @default("draft") // 见 core registration.ts
+  formValues   String     // JSON
+  order        Order?
+  checkIn      CheckIn?
+  createdAt    DateTime   @default(now())
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  registration   Registration @relation(fields: [registrationId], references: [id])
+  registrationId String       @unique
+  amountCents    Int
+  seats          Int          @default(1) // 本单占用名额数
+  // 预留/成交占用的配额池（denormalized，便于 liveReserved 统计与扣减）
+  quota          Quota?       @relation(fields: [quotaId], references: [id])
+  quotaId        String?
+  // 三个正交状态维度（见 core registration.ts / docs/04 §3.3），不揉进一个枚举
+  lifecycle      String       @default("reserved") // reserved/completed/cancelled/abandoned
+  payment_status String       @default("unpaid")   // unpaid/paid
+  refund_status  String       @default("none")     // none/partial/full
+  refundedAmountCents Int     @default(0)
+  reservedUntil  DateTime?    // lifecycle=reserved 时有效，超卖防护用
+  // 下单时价格快照（防主办方改价污染历史/对账），JSON
+  pointInTimeData String?
+  mock           Boolean      @default(true) // MVP 付费 mock
+  payment        Payment?
+  createdAt      DateTime     @default(now())
+}
+
+model Payment {
+  id        String @id @default(cuid())
+  order     Order  @relation(fields: [orderId], references: [id])
+  orderId   String @unique
+  provider  String @default("mock")
+  txnId     String?
+  paidAt    DateTime?
+}
+
+model CheckIn {
+  id             String       @id @default(cuid())
+  registration   Registration @relation(fields: [registrationId], references: [id])
+  registrationId String       @unique
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  checkedAt      DateTime     @default(now())
+  by             String?      // 工作人员标识
+}
+
+model Channel {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String
+  name    String
+  utm     String?
+}
+
+model Material {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String
+  channel String // moments/wechat_group/xiaohongshu/official_account/...
+  content String
+  version Int    @default(1)
+}
+
+model BudgetPlan {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String @unique
+  input   String // JSON BudgetInput
+  result  String // JSON BudgetResult 快照
+}
+
+model SponsorPlan {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String @unique
+  detail  String // JSON
+}
+
+model AgentTask {
+  id        String   @id @default(cuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  kind      String   // generation/decision/operator
+  title     String
+  detail    String?
+  status    String   @default("suggested") // suggested/accepted/dismissed/completed
+  highRisk  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model EventReview {
+  id      String @id @default(cuid())
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String @unique
+  summary String // JSON 复盘数据
+}

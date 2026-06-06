@@ -1,0 +1,31 @@
+<view wx:if="{{loading}}" class="container"><view class="muted">加载中…</view></view>
+
+<view wx:elif="{{!event}}" class="container">
+  <view class="muted">暂无活动。请先启动 API 并 seed：<text>pnpm --filter @loopin/api seed</text></view>
+</view>
+
+<view wx:else class="container">
+  <view class="cover">
+    <text class="cover-emoji">🎟️</text>
+  </view>
+
+  <view class="title">{{event.title}}</view>
+  <view class="meta muted">{{event.startText}} · {{event.venue}}</view>
+
+  <view class="price-row">
+    <text class="price">{{event.priceText}}</text>
+    <text class="muted">主办 {{event.organizer}}</text>
+  </view>
+
+  <view wx:if="{{available !== null}}" class="muted remain">剩余名额 {{available}}</view>
+
+  <view class="section-title">活动亮点</view>
+  <view wx:for="{{highlights}}" wx:key="*this" class="highlight">· {{item}}</view>
+
+  <view style="height: 160rpx;"></view>
+  <view class="footbar">
+    <button class="btn-primary" bindtap="goRegister" disabled="{{available === 0}}">
+      {{available === 0 ? '已售罄' : '立即报名'}}
+    </button>
+  </view>
+</view>

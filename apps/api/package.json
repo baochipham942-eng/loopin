@@ -1,0 +1,31 @@
+{
+  "name": "@loopin/api",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node --import tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:push": "prisma db push --schema prisma/schema.prisma",
+    "db:generate": "prisma generate --schema prisma/schema.prisma",
+    "db:generate:prod": "prisma generate --schema prisma/schema.postgres.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.postgres.prisma",
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@loopin/core": "workspace:*",
+    "@fastify/cors": "^10.0.1",
+    "@prisma/client": "^6.2.1",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.0",
+    "tsx": "^4.19.2",
+    "undici": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "prisma": "^6.2.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

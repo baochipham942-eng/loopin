@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/event-detail/index",
+    "pages/register/index",
+    "pages/register-success/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "Loopin",
+    "navigationBarBackgroundColor": "#0e0f1a",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0e0f1a"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

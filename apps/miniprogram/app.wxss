@@ -1,0 +1,16 @@
+page {
+  background: #0e0f1a;
+  color: #eef0ff;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+}
+.container { padding: 32rpx; }
+.btn-primary {
+  background: linear-gradient(90deg, #6c5ce7, #00d2ff);
+  color: #fff;
+  border-radius: 999rpx;
+  font-size: 32rpx;
+  padding: 24rpx 0;
+  text-align: center;
+  border: none;
+}
+.muted { color: #9aa0c4; }

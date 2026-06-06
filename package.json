@@ -1,0 +1,23 @@
+{
+  "name": "loopin",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Loopin — 面向年轻人的同频活动入口 + 面向主办方的活动赚钱与增长系统",
+  "packageManager": "pnpm@10.25.0",
+  "scripts": {
+    "test": "pnpm -r --filter ./packages/* test",
+    "build": "pnpm -r build",
+    "dev:api": "pnpm --filter @loopin/api dev",
+    "dev:studio": "pnpm --filter @loopin/studio dev",
+    "mini:ci": "node scripts/miniprogram-ci.mjs",
+    "mini:preview": "node scripts/miniprogram-ci.mjs preview",
+    "mini:upload": "node scripts/miniprogram-ci.mjs upload",
+    "mini:check": "node scripts/miniprogram-ci.mjs check-code-quality",
+    "deploy:build": "node scripts/prepare-fc-api.mjs",
+    "deploy:fc": "pnpm deploy:build && s deploy"
+  },
+  "devDependencies": {
+    "miniprogram-ci": "2.1.31",
+    "typescript": "^5.7.2"
+  }
+}

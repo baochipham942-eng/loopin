@@ -1,0 +1,6 @@
+<view class="container center">
+  <text class="ok">✅</text>
+  <view class="status">{{statusText}}</view>
+  <view class="muted tips">可在「我的活动」查看报名状态、活动二维码与提醒</view>
+  <button class="btn-primary back" bindtap="backHome">返回活动</button>
+</view>

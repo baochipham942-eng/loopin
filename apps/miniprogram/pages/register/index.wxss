@@ -1,0 +1,21 @@
+.title { font-size: 40rpx; font-weight: 700; }
+.sub { font-size: 24rpx; margin: 10rpx 0 30rpx; }
+.field { margin-bottom: 28rpx; }
+.label { font-size: 26rpx; color: #9aa0c4; display: block; margin-bottom: 12rpx; }
+.ipt {
+  background: #0e1020; border: 1rpx solid #262a44; border-radius: 14rpx;
+  padding: 22rpx 24rpx; font-size: 30rpx; color: #eef0ff;
+}
+.picker { min-height: 42rpx; }
+.ph { color: #565c84; }
+.submit { margin-top: 20rpx; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.chip {
+  font-size: 26rpx; padding: 14rpx 26rpx; border-radius: 999rpx;
+  background: #0e1020; border: 1rpx solid #262a44; color: #9aa0c4;
+}
+.chip-on {
+  background: linear-gradient(90deg, #6c5ce7, #00d2ff);
+  color: #fff; border-color: transparent;
+}

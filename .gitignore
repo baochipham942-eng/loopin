@@ -1,0 +1,23 @@
+node_modules/
+.pnpm-store/
+dist/
+*.log
+.DS_Store
+
+# secrets — 永不进 repo
+.env
+.env.local
+.env.*.local
+*.key
+private.*.key
+
+# prisma local db
+*.db
+*.db-journal
+
+# build / cache
+.turbo/
+.vite/
+.fc/
+.artifacts/
+coverage/

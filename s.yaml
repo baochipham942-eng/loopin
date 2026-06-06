@@ -1,0 +1,54 @@
+edition: 3.0.0
+name: loopin-api-app
+
+vars:
+  region: "ap-southeast-1"
+
+resources:
+  api:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: "loopin-api"
+      description: "Loopin Fastify API - FC custom runtime"
+      runtime: custom.debian10
+      cpu: 1
+      memorySize: 1024
+      diskSize: 512
+      timeout: 180
+      instanceConcurrency: 10
+      code: ./.fc/api
+      customRuntimeConfig:
+        command:
+          - /var/fc/lang/nodejs20/bin/node
+          - --import
+          - tsx
+          - src/server.ts
+        port: 8787
+      triggers:
+        - triggerName: http-trigger
+          triggerType: http
+          triggerConfig:
+            authType: anonymous
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+      environmentVariables:
+        PORT: "8787"
+        NODE_ENV: "production"
+        PUBLIC_BASE_URL: "https://loopin.llmxy.xyz"
+        DATABASE_URL: ${env(DATABASE_URL)}
+        LLM_BASE_URL: ${env(LLM_BASE_URL)}
+        LLM_API_KEY: ${env(LLM_API_KEY)}
+        LLM_MODEL: ${env(LLM_MODEL)}
+        LLM_PROXY: ""
+      customDomains:
+        - domainName: loopin.llmxy.xyz
+          protocol: HTTPS
+          certId: ${env(ALIYUN_FC_CERT_ID)}
+          routeConfigs:
+            - path: /*
+              functionName: "loopin-api"

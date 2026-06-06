@@ -1,0 +1,5 @@
+.center { display: flex; flex-direction: column; align-items: center; padding-top: 140rpx; }
+.ok { font-size: 120rpx; }
+.status { font-size: 38rpx; font-weight: 700; margin: 30rpx 0 14rpx; text-align: center; }
+.tips { font-size: 24rpx; text-align: center; }
+.back { margin-top: 60rpx; width: 60%; }

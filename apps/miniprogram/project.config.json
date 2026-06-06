@@ -1,0 +1,17 @@
+{
+  "appid": "wxfb83ad53ee194fe3",
+  "projectname": "loopin-miniprogram",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "libVersion": "latest",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "minifyWXML": true,
+    "minifyWXSS": true
+  },
+  "description": "Loopin C 端 —— 同频活动报名小程序（MVP 骨架）。urlCheck:false 用于本地开发不校验合法域名。"
+}
