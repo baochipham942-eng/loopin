@@ -14,7 +14,13 @@
     "mini:upload": "node scripts/miniprogram-ci.mjs upload",
     "mini:check": "node scripts/miniprogram-ci.mjs check-code-quality",
     "deploy:build": "node scripts/prepare-fc-api.mjs",
-    "deploy:fc": "pnpm deploy:build && s deploy"
+    "deploy:fc": "pnpm deploy:build && s deploy",
+    "db:migration-check": "node scripts/check-supabase-migrations.mjs",
+    "secrets:rotation-check": "node scripts/secret-rotation-check.mjs",
+    "secrets:rotation-record": "node scripts/record-secret-rotation.mjs",
+    "security:supabase": "node scripts/supabase-security-check.mjs",
+    "production:readiness": "node scripts/production-readiness-check.mjs",
+    "production:gate": "node scripts/production-gate.mjs"
   },
   "devDependencies": {
     "miniprogram-ci": "2.1.31",
