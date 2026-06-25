@@ -179,6 +179,57 @@ export function validateForm(
   return { ok: Object.keys(errors).length === 0, errors, warnings };
 }
 
+/** 所有合法字段类型（运行时校验用） */
+export const ALL_FIELD_TYPES: FieldType[] = [
+  "text", "phone", "single_select", "multi_select", "textarea",
+  "profession_tag", "city", "company", "wechat", "number", "date",
+];
+const ALL_VISIBILITY: FieldVisibility[] = ["public", "organizer_only", "audit_reference"];
+const OPTION_TYPES: FieldType[] = ["single_select", "multi_select", "profession_tag"];
+
+/**
+ * 校验报名表 schema 本身是否合法（区别于 validateForm 校验填写的值）。
+ * 落库前用，挡掉构建器产出的非法结构：重复 key、未知类型、依赖悬挂、选项缺失等。
+ */
+export function validateFormSchema(schema: unknown): { ok: boolean; errors: string[] } {
+  const errors: string[] = [];
+  if (!schema || typeof schema !== "object" || !Array.isArray((schema as RegistrationFormSchema).fields)) {
+    return { ok: false, errors: ["报名表结构非法：缺少 fields 数组"] };
+  }
+  const fields = (schema as RegistrationFormSchema).fields;
+  if (fields.length === 0) errors.push("报名表至少需要一个字段");
+
+  const keys = new Set<string>();
+  for (let i = 0; i < fields.length; i++) {
+    const f = fields[i]!;
+    const at = `第 ${i + 1} 个字段`;
+    if (!f.key || !f.key.trim()) errors.push(`${at}缺少字段标识 key`);
+    else if (keys.has(f.key)) errors.push(`字段标识重复：${f.key}`);
+    else keys.add(f.key);
+    if (!f.label || !f.label.trim()) errors.push(`${at}缺少标题`);
+    if (!ALL_FIELD_TYPES.includes(f.type)) errors.push(`${at}类型非法：${String(f.type)}`);
+    if (f.visibility && !ALL_VISIBILITY.includes(f.visibility)) errors.push(`${at}可见性非法：${String(f.visibility)}`);
+    if (OPTION_TYPES.includes(f.type)) {
+      const opts = f.options ?? [];
+      if (opts.length === 0) errors.push(`${at}（${f.label || f.key}）是选择类型，必须配置选项`);
+      const optValues = new Set<string>();
+      for (const o of opts) {
+        if (!o.value || !o.value.trim()) errors.push(`${at}存在空选项 value`);
+        else if (optValues.has(o.value)) errors.push(`${at}选项 value 重复：${o.value}`);
+        else optValues.add(o.value);
+      }
+    }
+  }
+  // 依赖必须指向存在的字段
+  for (const f of fields) {
+    if (f.dependsOn) {
+      if (!keys.has(f.dependsOn.field)) errors.push(`字段「${f.label || f.key}」依赖的字段不存在：${f.dependsOn.field}`);
+      if (!f.dependsOn.values || f.dependsOn.values.length === 0) errors.push(`字段「${f.label || f.key}」的依赖未指定触发值`);
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
 /** 按活动类型推荐的默认字段（系统推荐，主办方可改） */
 export function recommendFields(eventType: string): FormField[] {
   const base: FormField[] = [
@@ -202,7 +253,22 @@ export function recommendFields(eventType: string): FormField[] {
           { value: "student", label: "学生" },
         ],
       },
-      { key: "company", label: "公司/项目", type: "company", required: false, visibility: "public", validation: { maxLength: 30 } }
+      { key: "company", label: "公司/项目", type: "company", required: false, visibility: "public", validation: { maxLength: 30 } },
+      {
+        key: "source",
+        label: "从哪里知道的",
+        type: "single_select",
+        required: false,
+        visibility: "organizer_only",
+        options: [
+          { value: "wechat_group", label: "微信群" },
+          { value: "moments", label: "朋友圈" },
+          { value: "xiaohongshu", label: "小红书" },
+          { value: "official_account", label: "公众号" },
+          { value: "friend_referral", label: "朋友推荐" },
+          { value: "other", label: "其他" },
+        ],
+      }
     );
   }
   return base;

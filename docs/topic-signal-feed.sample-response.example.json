@@ -1,0 +1,22 @@
+{
+  "data": {
+    "events": [
+      {
+        "uid": "partner-ai-founder-salon",
+        "name": "AI 创始人同频沙龙",
+        "location": {
+          "city": "上海"
+        },
+        "category": ["AI", "创业"],
+        "targetAudience": "创始人",
+        "eventType": "沙龙",
+        "stats": {
+          "popularity": 88
+        },
+        "intro": "合作方活动 API 显示 AI 创始人小范围交流需求升温。",
+        "insight": "适合做成闭门同频局。",
+        "updatedAt": "2026-06-08"
+      }
+    ]
+  }
+}

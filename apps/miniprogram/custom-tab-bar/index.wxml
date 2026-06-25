@@ -1,0 +1,23 @@
+<view class="tabbar">
+  <view
+    wx:for="{{tabs}}"
+    wx:key="key"
+    class="tab-item {{selected === index ? 'active' : ''}}"
+    data-index="{{index}}"
+    bindtap="switchTab"
+  >
+    <view class="tab-icon {{item.key}}">
+      <block wx:if="{{item.key === 'events'}}">
+        <view class="calendar-top"></view>
+        <view class="calendar-grid">
+          <view></view><view></view><view></view><view></view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="person-head"></view>
+        <view class="person-body"></view>
+      </block>
+    </view>
+    <view class="tab-text">{{item.text}}</view>
+  </view>
+</view>

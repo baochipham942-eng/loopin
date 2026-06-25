@@ -1,0 +1,69 @@
+{
+  "feeds": [
+    {
+      "url": "https://partner.example.com/huodongxing/events",
+      "source": "huodongxing_partner_api",
+      "label": "活动行活动 API",
+      "auth": {
+        "type": "apiKey",
+        "env": "HUODONGXING_TOPIC_API_KEY"
+      },
+      "headers": {
+        "X-Partner": "env:HUODONGXING_TOPIC_PARTNER_ID"
+      },
+      "itemsPath": "data.events",
+      "fieldMap": {
+        "externalId": ["uid", "id", "eventId"],
+        "topic": ["name", "title"],
+        "city": ["location.city", "cityName", "city"],
+        "industries": ["category", "categoryName", "tags"],
+        "audiences": ["targetAudience", "audience"],
+        "formats": ["eventType", "typeName", "format"],
+        "heat": ["stats.popularity", "stats.registrations", "registrations", "views"],
+        "evidence": ["intro", "summary", "description"],
+        "opportunity": ["insight", "recommendation"],
+        "capturedAt": ["updatedAt", "startAt"]
+      }
+    },
+    {
+      "url": "https://partner.example.com/api/events",
+      "source": "partner_events_api",
+      "label": "合作方活动库",
+      "auth": {
+        "type": "bearer",
+        "env": "PARTNER_TOPIC_TOKEN"
+      },
+      "itemsPath": "data.events",
+      "fieldMap": {
+        "externalId": "uid",
+        "topic": "name",
+        "city": "location.city",
+        "industries": "category",
+        "audiences": "targetAudience",
+        "formats": "eventType",
+        "heat": "stats.popularity",
+        "evidence": "intro",
+        "opportunity": "insight",
+        "capturedAt": "updatedAt"
+      }
+    },
+    {
+      "url": "https://public.example.com/topic-signals.json",
+      "source": "public_topic_feed",
+      "label": "公开活动样本",
+      "itemsPath": "signals",
+      "fieldMap": {
+        "externalId": "id",
+        "topic": "title",
+        "city": "city",
+        "industries": "industries",
+        "audiences": "audiences",
+        "formats": "formats",
+        "heat": "heat",
+        "evidence": "summary",
+        "opportunity": "recommendation",
+        "capturedAt": "updatedAt"
+      }
+    }
+  ]
+}

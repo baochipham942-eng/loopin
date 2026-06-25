@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   validateForm,
+  validateFormSchema,
   isFieldVisible,
   recommendFields,
+  RECOMMENDED_MAX_FIELDS,
   type RegistrationFormSchema,
 } from "./form-schema.js";
 
@@ -153,5 +155,49 @@ describe("recommendFields", () => {
     expect(prof).toBeTruthy();
     expect(prof!.options?.[0]).toHaveProperty("value");
     expect(fields.find((f) => f.key === "phone")?.required).toBe(true);
+    expect(fields.find((f) => f.key === "source")).toMatchObject({
+      label: "从哪里知道的",
+      type: "single_select",
+      required: false,
+    });
+    expect(fields.length).toBeLessThanOrEqual(RECOMMENDED_MAX_FIELDS);
+  });
+});
+
+describe("validateFormSchema", () => {
+  it("推荐字段产出的 schema 合法", () => {
+    const schema: RegistrationFormSchema = { fields: recommendFields("ai_sharing") };
+    expect(validateFormSchema(schema).ok).toBe(true);
+  });
+  it("缺 fields 数组直接判非法", () => {
+    expect(validateFormSchema({}).ok).toBe(false);
+    expect(validateFormSchema(null).ok).toBe(false);
+  });
+  it("空表单非法", () => {
+    expect(validateFormSchema({ fields: [] }).ok).toBe(false);
+  });
+  it("重复 key 报错", () => {
+    const r = validateFormSchema({ fields: [
+      { key: "name", label: "姓名", type: "text", required: true, visibility: "organizer_only" },
+      { key: "name", label: "重名", type: "text", required: false, visibility: "public" },
+    ] });
+    expect(r.ok).toBe(false);
+    expect(r.errors.some((e) => e.includes("重复"))).toBe(true);
+  });
+  it("未知类型报错", () => {
+    const r = validateFormSchema({ fields: [{ key: "x", label: "X", type: "rocket", required: false, visibility: "public" }] });
+    expect(r.ok).toBe(false);
+  });
+  it("选择类型缺选项报错", () => {
+    const r = validateFormSchema({ fields: [{ key: "s", label: "来源", type: "single_select", required: false, visibility: "public" }] });
+    expect(r.ok).toBe(false);
+    expect(r.errors.some((e) => e.includes("选项"))).toBe(true);
+  });
+  it("依赖悬挂报错", () => {
+    const r = validateFormSchema({ fields: [
+      { key: "a", label: "A", type: "text", required: false, visibility: "public", dependsOn: { field: "ghost", values: ["x"] } },
+    ] });
+    expect(r.ok).toBe(false);
+    expect(r.errors.some((e) => e.includes("依赖"))).toBe(true);
   });
 });

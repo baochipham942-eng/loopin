@@ -1,0 +1,43 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading muted">加载中…</view>
+
+  <block wx:elif="{{organizer}}">
+    <view class="host-head">
+      <image wx:if="{{hostProfile.avatarUrl}}" class="host-avatar" src="{{hostProfile.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="host-avatar host-avatar-fallback">{{organizer.name[0]}}</view>
+      <view class="host-name">{{organizer.name}}</view>
+      <view wx:if="{{hostProfile.bio}}" class="host-bio muted">{{hostProfile.bio}}</view>
+      <view wx:if="{{links.length}}" class="host-links">
+        <view wx:for="{{links}}" wx:key="url" class="host-link-chip" bindtap="copyLink" data-url="{{item.url}}">
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <view class="section-title">主办的活动 · {{events.length}}</view>
+
+    <view wx:if="{{!events.length}}" class="empty">
+      <view class="muted empty-sub">这个主办方还没有进行中的活动。</view>
+    </view>
+
+    <view wx:else class="list">
+      <view wx:for="{{events}}" wx:key="id" class="event-card" bindtap="openEvent" data-event-id="{{item.id}}">
+        <view class="date-tile">
+          <view class="date-main">{{item.dateText}}</view>
+          <view class="date-time">{{item.timeText}}</view>
+        </view>
+        <view class="card-body">
+          <view class="card-title">{{item.title}}</view>
+          <view class="muted card-line">{{item.placeText}}</view>
+          <view class="meta-row">
+            <text class="price">{{item.priceText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="empty">
+    <view class="empty-title">主办方不存在</view>
+  </view>
+</view>

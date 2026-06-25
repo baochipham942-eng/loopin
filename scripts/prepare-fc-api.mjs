@@ -1,10 +1,11 @@
-import { copyFileSync, cpSync, existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const deployDir = join(repoRoot, ".fc", "api");
+const postgresClientSnapshotDir = join(repoRoot, ".fc", "postgres-prisma-client");
 const sqliteSchema = "prisma/schema.prisma";
 const postgresSchema = "prisma/schema.postgres.prisma";
 
@@ -33,6 +34,41 @@ function scrubLocalOnlyFiles() {
   copyFileSync(join(repoRoot, "apps", "api", "prisma", "schema.postgres.prisma"), join(prismaDir, "schema.prisma"));
 }
 
+function writeDeployIgnore() {
+  writeFileSync(
+    join(deployDir, ".fcignore"),
+    [
+      ".env",
+      "test/",
+      "vitest.config.ts",
+      "prisma/*.db",
+      "prisma/*.db-journal",
+      ".fcignore",
+      "",
+    ].join("\n")
+  );
+}
+
+function buildApiBundle() {
+  run("pnpm", [
+    "--filter",
+    "@loopin/api",
+    "exec",
+    "esbuild",
+    "src/server.ts",
+    "--bundle",
+    "--platform=node",
+    "--format=esm",
+    "--target=node20",
+    "--outfile=dist/server.js",
+    "--external:@fastify/cors",
+    "--external:@prisma/client",
+    "--external:dotenv/config",
+    "--external:fastify",
+    "--external:undici",
+  ]);
+}
+
 function findPrismaClientModuleRoot(baseDir) {
   const pnpmDir = join(baseDir, "node_modules", ".pnpm");
   const candidates = readdirSync(pnpmDir).filter((entry) => entry.startsWith("@prisma+client@"));
@@ -43,14 +79,21 @@ function findPrismaClientModuleRoot(baseDir) {
   throw new Error(`Could not find @prisma/client virtual store under ${pnpmDir}`);
 }
 
-function copyGeneratedPrismaClient() {
-  const sourceRoot = findPrismaClientModuleRoot(repoRoot);
-  const deployRoot = findPrismaClientModuleRoot(deployDir);
-  const source = join(sourceRoot, ".prisma");
-  const target = join(deployRoot, ".prisma");
+function getGeneratedPrismaClientDir(baseDir) {
+  const moduleRoot = findPrismaClientModuleRoot(baseDir);
+  return join(moduleRoot, ".prisma");
+}
+
+function snapshotGeneratedPostgresClient() {
+  rm(postgresClientSnapshotDir);
+  cpSync(getGeneratedPrismaClientDir(repoRoot), postgresClientSnapshotDir, { recursive: true });
+}
+
+function copyGeneratedPrismaClientFromSnapshot() {
+  const target = getGeneratedPrismaClientDir(deployDir);
 
   rm(target);
-  cpSync(source, target, { recursive: true });
+  cpSync(postgresClientSnapshotDir, target, { recursive: true });
 }
 
 function assertGeneratedPostgresClient() {
@@ -69,6 +112,7 @@ function assertGeneratedPostgresClient() {
 }
 
 cleanDeployDir();
+rm(postgresClientSnapshotDir);
 
 const postgresGenerateUrl = process.env.DATABASE_URL?.startsWith("postgres")
   ? process.env.DATABASE_URL
@@ -76,10 +120,15 @@ const postgresGenerateUrl = process.env.DATABASE_URL?.startsWith("postgres")
 
 try {
   run("pnpm", ["--filter", "@loopin/api", "exec", "prisma", "generate", "--schema", postgresSchema], { DATABASE_URL: postgresGenerateUrl });
+  snapshotGeneratedPostgresClient();
+  buildApiBundle();
   run("pnpm", ["--filter", "@loopin/api", "deploy", "--prod", "--legacy", deployDir]);
   scrubLocalOnlyFiles();
-  copyGeneratedPrismaClient();
-  assertGeneratedPostgresClient();
+  writeDeployIgnore();
 } finally {
   run("pnpm", ["--filter", "@loopin/api", "exec", "prisma", "generate", "--schema", sqliteSchema]);
 }
+
+copyGeneratedPrismaClientFromSnapshot();
+assertGeneratedPostgresClient();
+rm(postgresClientSnapshotDir);

@@ -107,9 +107,26 @@ CREATE TABLE "Registration" (
     "userId" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'draft',
     "formValues" TEXT NOT NULL,
+    "checkinToken" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Registration_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WaitlistEntry" (
+    "id" TEXT NOT NULL,
+    "eventId" TEXT NOT NULL,
+    "registrationId" TEXT NOT NULL,
+    "quotaId" TEXT,
+    "position" INTEGER NOT NULL,
+    "offerToken" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'waiting',
+    "offerExpiresAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WaitlistEntry_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -229,10 +246,22 @@ CREATE UNIQUE INDEX "EventPage_eventId_key" ON "EventPage"("eventId");
 CREATE UNIQUE INDEX "Order_registrationId_key" ON "Order"("registrationId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Registration_checkinToken_key" ON "Registration"("checkinToken");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Payment_orderId_key" ON "Payment"("orderId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CheckIn_registrationId_key" ON "CheckIn"("registrationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "WaitlistEntry_registrationId_key" ON "WaitlistEntry"("registrationId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "WaitlistEntry_offerToken_key" ON "WaitlistEntry"("offerToken");
+
+-- CreateIndex
+CREATE INDEX "WaitlistEntry_eventId_status_position_idx" ON "WaitlistEntry"("eventId", "status", "position");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "BudgetPlan_eventId_key" ON "BudgetPlan"("eventId");
@@ -275,6 +304,15 @@ ALTER TABLE "Registration" ADD CONSTRAINT "Registration_ticketTypeId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "Registration" ADD CONSTRAINT "Registration_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WaitlistEntry" ADD CONSTRAINT "WaitlistEntry_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WaitlistEntry" ADD CONSTRAINT "WaitlistEntry_registrationId_fkey" FOREIGN KEY ("registrationId") REFERENCES "Registration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WaitlistEntry" ADD CONSTRAINT "WaitlistEntry_quotaId_fkey" FOREIGN KEY ("quotaId") REFERENCES "Quota"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_registrationId_fkey" FOREIGN KEY ("registrationId") REFERENCES "Registration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

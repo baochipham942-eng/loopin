@@ -1,0 +1,34 @@
+<view class="container tab-page">
+  <view class="topbar">
+    <view>
+      <view class="eyebrow">Loopin</view>
+      <view class="title">正在发生的局</view>
+    </view>
+  </view>
+
+  <view class="sub muted">精选主办方活动，先从报名闭环跑通。</view>
+
+  <view wx:if="{{loading}}" class="loading muted">加载中…</view>
+
+  <view wx:elif="{{!events.length}}" class="empty">
+    <view class="empty-title">暂无可报名活动</view>
+    <view class="muted empty-sub">主办方发布活动后，会出现在这里。</view>
+  </view>
+
+  <view wx:else class="list">
+    <view wx:for="{{events}}" wx:key="id" class="event-card" bindtap="openEvent" data-event-id="{{item.id}}">
+      <view class="date-tile">
+        <view class="date-main">{{item.dateText}}</view>
+        <view class="date-time">{{item.timeText}}</view>
+      </view>
+      <view class="card-body">
+        <view class="card-title">{{item.title}}</view>
+        <view class="muted card-line">{{item.placeText}}</view>
+        <view class="meta-row">
+          <text class="price">{{item.priceText}}</text>
+          <text class="muted organizer">{{item.organizer}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

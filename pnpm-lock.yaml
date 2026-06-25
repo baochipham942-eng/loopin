@@ -32,6 +32,9 @@ importers:
       fastify:
         specifier: ^5.2.0
         version: 5.8.5
+      jsonrepair:
+        specifier: ^3.14.0
+        version: 3.14.0
       tsx:
         specifier: ^4.19.2
         version: 4.22.4
@@ -42,6 +45,9 @@ importers:
       '@types/node':
         specifier: ^22.10.5
         version: 22.19.20
+      esbuild:
+        specifier: 0.28.0
+        version: 0.28.0
       prisma:
         specifier: ^6.2.1
         version: 6.19.3(typescript@5.9.3)
@@ -63,6 +69,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      react-router-dom:
+        specifier: ^6.30.4
+        version: 6.30.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@types/react':
         specifier: ^18.3.18
@@ -79,6 +88,9 @@ importers:
       vite:
         specifier: ^6.0.7
         version: 6.4.3(@types/node@22.19.20)(jiti@2.7.0)(less@4.5.1)(sass@1.100.0)(tsx@4.22.4)
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.19.20)(less@4.5.1)(sass@1.100.0)
 
   packages/core:
     devDependencies:
@@ -1707,6 +1719,10 @@ packages:
 
   '@protobufjs/utf8@1.1.1':
     resolution: {integrity: sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg==}
+
+  '@remix-run/router@1.23.3':
+    resolution: {integrity: sha512-4An71tdz9X8+3sI4Qqqd2LWd9vS39J7sqd9EU4Scw7TJE/qB10Flv/UuqbPVgfQV9XoK8Np6jNquZitnZq5i+Q==}
+    engines: {node: '>=14.0.0'}
 
   '@rolldown/pluginutils@1.0.0-beta.27':
     resolution: {integrity: sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA==}
@@ -3719,6 +3735,10 @@ packages:
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
 
+  jsonrepair@3.14.0:
+    resolution: {integrity: sha512-tWPGKMZf/8UPim+fcW2EfcQ/d/7aKUrP6IECz9G3Tu6Q5dX0orSleqJ9z6sSw7qrQkjF8/Edo4DvsWBZ8H+HNg==}
+    hasBin: true
+
   jsonschema@1.5.0:
     resolution: {integrity: sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==}
 
@@ -4571,6 +4591,19 @@ packages:
   react-refresh@0.17.0:
     resolution: {integrity: sha512-z6F7K9bV85EfseRCp2bzrpyQ0Gkw1uLoCel9XBVWPg/TjRj94SkJzUTGfOa4bs7iJvBWtQG0Wq7wnI0syw3EBQ==}
     engines: {node: '>=0.10.0'}
+
+  react-router-dom@6.30.4:
+    resolution: {integrity: sha512-q4HvNl+mmDdkS0g+MqiBZNteQJCuimWoOyHMy4T/RQLAn9Z29+E91QXRaxOujeMl2HTzRSS0KFPd7lxX3PjV0Q==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
+  react-router@6.30.4:
+    resolution: {integrity: sha512-SVUsDe+DybHM/WmYKIVYhZh1o5Dcuf16yM6WjG02Q9XVFMZIJyHYhwrr6bFBXZkVP6z69kNkMyBCujt8FaFLJA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=16.8'
 
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
@@ -7044,6 +7077,8 @@ snapshots:
 
   '@protobufjs/utf8@1.1.1': {}
 
+  '@remix-run/router@1.23.3': {}
+
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
   '@rollup/rollup-android-arm-eabi@4.61.1':
@@ -9418,6 +9453,8 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
+  jsonrepair@3.14.0: {}
+
   jsonschema@1.5.0: {}
 
   jsprim@1.4.2:
@@ -10403,6 +10440,18 @@ snapshots:
       scheduler: 0.23.2
 
   react-refresh@0.17.0: {}
+
+  react-router-dom@6.30.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@remix-run/router': 1.23.3
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-router: 6.30.4(react@18.3.1)
+
+  react-router@6.30.4(react@18.3.1):
+    dependencies:
+      '@remix-run/router': 1.23.3
+      react: 18.3.1
 
   react@18.3.1:
     dependencies:

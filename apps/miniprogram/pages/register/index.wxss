@@ -1,5 +1,11 @@
 .title { font-size: 40rpx; font-weight: 700; }
 .sub { font-size: 24rpx; margin: 10rpx 0 30rpx; }
+.auth-card {
+  padding: 22rpx 24rpx; margin-bottom: 30rpx;
+  background: #15172a; border: 1rpx solid #2b3050; border-radius: 18rpx;
+}
+.auth-title { font-size: 28rpx; font-weight: 700; }
+.auth-sub { margin-top: 8rpx; font-size: 22rpx; line-height: 1.45; }
 .field { margin-bottom: 28rpx; }
 .label { font-size: 26rpx; color: #9aa0c4; display: block; margin-bottom: 12rpx; }
 .ipt {
@@ -10,7 +16,7 @@
 .ph { color: #565c84; }
 .submit { margin-top: 20rpx; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.chips, .identity-options { display: flex; flex-wrap: wrap; gap: 16rpx; }
 .chip {
   font-size: 26rpx; padding: 14rpx 26rpx; border-radius: 999rpx;
   background: #0e1020; border: 1rpx solid #262a44; color: #9aa0c4;
@@ -18,4 +24,13 @@
 .chip-on {
   background: linear-gradient(90deg, #6c5ce7, #00d2ff);
   color: #fff; border-color: transparent;
+}
+.identity-option {
+  min-width: 188rpx; box-sizing: border-box; text-align: center;
+  font-size: 26rpx; padding: 18rpx 22rpx; border-radius: 16rpx;
+  background: #0e1020; border: 1rpx solid #262a44; color: #9aa0c4;
+}
+.identity-on {
+  background: #00d2ff22; border-color: #00d2ff88; color: #b8f3ff;
+  font-weight: 700;
 }

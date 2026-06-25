@@ -10,6 +10,8 @@ export interface EventPageInput {
   priceText?: string;
   speaker?: string;
   city?: string;
+  timeText?: string;
+  venue?: string;
 }
 
 export interface GeneratedEventPage {
@@ -23,19 +25,10 @@ export interface GeneratedEventPage {
 }
 
 const PAGE_SYS =
-  "你是 Loopin 的活动页文案策划，Loopin 是面向年轻人的同频活动平台。文案要真诚、有吸引力、口语化，突出'能认识同频的人、值得来'，不要浮夸、不要空话套话、不要明显的 AI 腔。";
+  "你是 Loopin 的活动页文案策划，Loopin 是面向年轻人的同频活动平台。文案要真诚、有吸引力、口语化，突出'能认识同频的人、值得来'，不要浮夸、不要空话套话、不要明显的 AI 腔。严格遵守用户给定的事实字段，不得自行补时间、地点、嘉宾、票价。";
 
 export async function generateEventPage(input: EventPageInput): Promise<GeneratedEventPage> {
-  const user = `为下面这场线下活动生成活动页文案。输出 JSON，字段：
-title(活动标题, ≤20字), tagline(一句话核心卖点, ≤25字), highlights(亮点, 3-4条, 每条≤20字), agenda(议程, 3-5条), forWho(适合谁, 3-4个人群标签), faq(常见问题, 3条, 每条为{q,a}), notes(报名须知, 2-3条)。
-
-活动主题：${input.theme}
-目标人群：${input.audience || "AI 产品/创业/增长方向的年轻从业者"}
-风格基调：${input.style || "AI 科技感 + 城市沙龙"}
-票价：${input.priceText || "待定"}
-嘉宾：${input.speaker || "暂未确定"}
-城市：${input.city || "上海"}`;
-  const raw = await chatJSON<any>(PAGE_SYS, user, { maxTokens: 2000 });
+  const raw = await chatJSON<any>(PAGE_SYS, buildEventPagePrompt(input), { maxTokens: 2000 });
   // LLM 输出形状不保证（概率性）：归一化到类型契约，避免前端崩
   return {
     title: str(raw?.title),
@@ -46,6 +39,31 @@ title(活动标题, ≤20字), tagline(一句话核心卖点, ≤25字), highlig
     faq: faqArr(raw?.faq),
     notes: arr(raw?.notes),
   };
+}
+
+function fact(v: string | undefined, fallback: string): string {
+  const text = v?.trim();
+  return text || fallback;
+}
+
+export function buildEventPagePrompt(input: EventPageInput): string {
+  return `为下面这场线下活动生成活动页文案。输出 JSON，字段：
+title(活动标题, ≤20字), tagline(一句话核心卖点, ≤25字), highlights(亮点, 3-4条, 每条≤20字), agenda(议程, 3-5条), forWho(适合谁, 3-4个人群标签), faq(常见问题, 3条, 每条为{q,a}), notes(报名须知, 2-3条)。
+
+硬性事实约束：
+1. 时间、地点、城市、票价、嘉宾只能使用下方事实字段，不得自行补具体日期、时段、地址、嘉宾名。
+2. 字段为“待定/暂未确定”时，只能写待定或暂未确定，不能编成具体信息。
+3. 议程如需拆段，用“签到/开场/分享/交流”这类相对安排，不要虚构钟点。
+
+事实字段：
+活动主题：${fact(input.theme, "待定")}
+目标人群：${fact(input.audience, "AI 产品/创业/增长方向的年轻从业者")}
+风格基调：${fact(input.style, "AI 科技感 + 城市沙龙")}
+时间：${fact(input.timeText, "待定")}
+地点：${fact(input.venue, "待定")}
+票价：${fact(input.priceText, "待定")}
+嘉宾：${fact(input.speaker, "暂未确定")}
+城市：${fact(input.city, "待定")}`;
 }
 
 function str(v: unknown): string {
@@ -87,26 +105,36 @@ export interface GeneratedMaterials {
 }
 
 const MAT_SYS =
-  "你是社媒推广文案专家，给面向年轻人的线下活动写各渠道推广文案。每个渠道语气不同：朋友圈口语化带情绪、微信群简短有行动号召、小红书有钩子标题和话题标签、公众号导语有信息量。不要浮夸、不要 AI 腔。";
+  "你是社媒推广文案专家，给面向年轻人的线下活动写各渠道推广文案。每个渠道语气不同：朋友圈口语化带情绪、微信群简短有行动号召、小红书有钩子标题和话题标签、公众号导语有信息量。不要浮夸、不要 AI 腔。严格遵守用户给定的事实字段，不得自行补时间、地点、票价。";
 
 export async function generateMaterials(input: MaterialsInput): Promise<GeneratedMaterials> {
-  const user = `为下面这场活动生成多渠道推广文案。输出 JSON，字段：
-moments(朋友圈文案, 2条, 口语化可带 emoji, 每条≤80字),
-wechatGroup(微信群转发话术, 2条, 简短带报名号召),
-xiaohongshu(小红书笔记, 2条, 每条{title(带emoji钩子, ≤20字), body(≤120字, 结尾带2-3个#话题标签)}),
-officialAccount(公众号推文开头导语, 1条, ≤120字)。
-
-活动标题：${input.title}
-亮点：${(input.highlights || []).join("；") || "（见标题）"}
-目标人群：${input.audience || "AI 产品/创业方向年轻人"}
-时间：${input.timeText || "待定"}
-地点：${input.venue || input.city || "上海"}
-票价：${input.priceText || "待定"}`;
-  const raw = await chatJSON<any>(MAT_SYS, user, { maxTokens: 2400 });
+  const raw = await chatJSON<any>(MAT_SYS, buildMaterialsPrompt(input), { maxTokens: 2400 });
   return {
     moments: arr(raw?.moments),
     wechatGroup: arr(raw?.wechatGroup),
     xiaohongshu: xhsArr(raw?.xiaohongshu),
     officialAccount: arr(raw?.officialAccount),
   };
+}
+
+export function buildMaterialsPrompt(input: MaterialsInput): string {
+  return `为下面这场活动生成多渠道推广文案。输出 JSON，字段：
+moments(朋友圈文案, 2条, 口语化可带 emoji, 每条≤80字),
+wechatGroup(微信群转发话术, 2条, 简短带报名号召),
+xiaohongshu(小红书笔记, 2条, 每条{title(带emoji钩子, ≤20字), body(≤120字, 结尾带2-3个#话题标签)}),
+officialAccount(公众号推文开头导语, 1条, ≤120字)。
+
+硬性事实约束：
+1. 时间、地点、城市、票价只能使用下方事实字段，不得自行补具体日期、时段、地址。
+2. 字段为“待定”时，只能写待定，不能编成具体信息。
+3. 如果给定了时间或地点，必须原样保留关键信息，不能改写成另一个时间或另一个地点。
+
+事实字段：
+活动标题：${fact(input.title, "待定")}
+亮点：${(input.highlights || []).join("；") || "（见标题）"}
+目标人群：${fact(input.audience, "AI 产品/创业方向年轻人")}
+时间：${fact(input.timeText, "待定")}
+地点：${fact(input.venue, "待定")}
+城市：${fact(input.city, "待定")}
+票价：${fact(input.priceText, "待定")}`;
 }

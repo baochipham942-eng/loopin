@@ -1,0 +1,178 @@
+<view wx:if="{{loading}}" class="container"><view class="muted">加载复盘中…</view></view>
+
+<view wx:elif="{{!event}}" class="container empty">
+  <view class="empty-title">暂时没有复盘</view>
+  <view class="muted empty-sub">活动数据准备好后，会在这里展示。</view>
+  <button class="btn-primary empty-action" bindtap="goMy">回到我的活动</button>
+</view>
+
+<view wx:else class="container review">
+  <view class="hero-block">
+    <view class="eyebrow">{{event.ended ? "活动复盘" : "活动进度"}}</view>
+    <view class="title">{{event.title}}</view>
+    <view class="muted meta">{{event.startText}} · {{event.venue || event.city}}</view>
+  </view>
+
+  <view class="metric-grid">
+    <view class="metric"><view class="m-label">报名</view><view class="m-value">{{metrics.totalRegistrations}}</view></view>
+    <view class="metric"><view class="m-label">确认</view><view class="m-value">{{metrics.confirmed}}</view></view>
+    <view class="metric"><view class="m-label">签到</view><view class="m-value">{{metrics.checkedIn}}</view></view>
+    <view class="metric"><view class="m-label">到场率</view><view class="m-value">{{metrics.showUpText}}</view></view>
+    <view class="metric"><view class="m-label">收入</view><view class="m-value small">{{metrics.revenueText}}</view></view>
+    <view class="metric"><view class="m-label">转化</view><view class="m-value small">{{metrics.conversionText}}</view></view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">关键观察</view>
+    <view wx:for="{{takeaways}}" wx:key="*this" class="list-row">{{item}}</view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">下一步动作</view>
+    <view wx:for="{{nextActions}}" wx:key="*this" class="action-row">
+      <view class="dot"></view>
+      <view class="action-text">{{item}}</view>
+    </view>
+  </view>
+
+  <view class="panel" wx:if="{{audience}}">
+    <view class="section-title">参与者分层</view>
+    <view wx:for="{{audience.segments}}" wx:key="key" class="segment-row">
+      <view class="segment-main">
+        <view class="segment-title">{{item.label}}</view>
+        <view class="segment-action">{{item.action}}</view>
+      </view>
+      <view class="segment-count">{{item.count}}</view>
+    </view>
+    <view wx:if="{{audience.roles.length}}" class="chip-line">
+      <view wx:for="{{audience.roles}}" wx:key="label" class="chip">{{item.label}} {{item.count}}</view>
+    </view>
+  </view>
+
+  <view class="panel" wx:if="{{growth && growth.channelAttribution}}">
+    <view class="section-title">渠道归因</view>
+    <view class="channel-summary">
+      <view class="feedback-pill">已归因 {{growth.channelAttribution.totalAttributed}} 人</view>
+      <view class="feedback-pill">未标注 {{growth.channelAttribution.unattributed}} 人</view>
+    </view>
+    <view wx:for="{{growth.channelAttribution.channels}}" wx:key="key" class="channel-row">
+      <view class="channel-main">
+        <view class="channel-title">{{item.label}}</view>
+        <view class="muted channel-insight">{{item.insight}}</view>
+        <view class="channel-detail" wx:if="{{item.referrers && item.referrers.length}}">
+          入口 {{item.referrers[0].label}} · {{item.referrers[0].count}} 人
+        </view>
+        <view class="channel-detail" wx:if="{{item.contents && item.contents.length}}">
+          素材 {{item.contents[0].label}} · {{item.contents[0].count}} 人
+        </view>
+      </view>
+      <view class="channel-stats">
+        <view>{{item.registrations}} 报名</view>
+        <view>{{item.showUpRate === null || item.showUpRate === undefined ? "—" : item.showUpRate + "%"}} 到场</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel" wx:if="{{growth && growth.reinviteScripts && growth.reinviteScripts.length}}">
+    <view class="section-title">复邀话术</view>
+    <view wx:for="{{growth.reinviteScripts}}" wx:key="segmentKey" class="script-card">
+      <view class="script-head">
+        <view class="script-title">{{item.label}} · {{item.count}} 人</view>
+        <button class="script-copy" catchtap="copyScript" data-copy="{{item.copy}}">复制</button>
+      </view>
+      <view class="muted script-copy-text">{{item.copy}}</view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">资料包</view>
+    <view wx:for="{{resourcePack}}" wx:key="title" class="resource-row">
+      <view>
+        <view class="resource-title">{{item.title}}</view>
+        <view class="muted resource-detail">{{item.detail}}</view>
+        <button wx:if="{{item.url}}" class="resource-copy" catchtap="copyResource" data-url="{{item.url}}">复制链接</button>
+      </view>
+      <view class="resource-status {{item.status}}">{{item.status === "ready" ? "可整理" : "待补齐"}}</view>
+    </view>
+  </view>
+
+  <view class="panel" wx:if="{{feedback}}">
+    <view class="section-title">{{feedback.title}}</view>
+    <view class="feedback-summary" wx:if="{{feedback.total}}">
+      <view class="feedback-pill">已收 {{feedback.total}} 条</view>
+      <view class="feedback-pill">平均 {{feedback.averageRating || "—"}} 分</view>
+      <view class="feedback-pill" wx:if="{{feedback.nextTopics.length}}">想聊 {{feedback.nextTopics[0].label}}</view>
+    </view>
+
+    <view class="feedback-question">这场活动整体体验</view>
+    <view class="rating-row">
+      <button
+        wx:for="{{ratingOptions}}"
+        wx:key="*this"
+        class="rating-btn {{feedbackForm.rating === item ? 'active' : ''}}"
+        data-rating="{{item}}"
+        catchtap="setRating"
+      >{{item}}</button>
+    </view>
+
+    <view class="feedback-question">{{feedback.questions[0]}}</view>
+    <textarea
+      class="feedback-textarea"
+      value="{{feedbackForm.valuable}}"
+      data-key="valuable"
+      bindinput="onFeedbackInput"
+      maxlength="500"
+      placeholder="写下你最想保留的一点"
+      placeholder-class="placeholder"
+    />
+
+    <view class="feedback-question">{{feedback.questions[1]}}</view>
+    <input
+      class="feedback-input"
+      value="{{feedbackForm.nextTopic}}"
+      data-key="nextTopic"
+      bindinput="onFeedbackInput"
+      maxlength="180"
+      placeholder="例如：AI Agent 商业化复盘"
+      placeholder-class="placeholder"
+    />
+
+    <view class="feedback-question">{{feedback.questions[2]}}</view>
+    <picker mode="selector" range="{{roleOptions}}" bindchange="onRoleChange">
+      <view class="feedback-picker">{{feedbackForm.roleInterest}}</view>
+    </picker>
+
+    <textarea
+      class="feedback-textarea small"
+      value="{{feedbackForm.note}}"
+      data-key="note"
+      bindinput="onFeedbackInput"
+      maxlength="500"
+      placeholder="补充想法"
+      placeholder-class="placeholder"
+    />
+
+    <button class="feedback-submit" bindtap="submitFeedback" disabled="{{feedbackSubmitting}}">
+      {{feedbackSubmitting ? "提交中" : feedbackSubmitted ? "更新反馈" : "提交反馈"}}
+    </button>
+  </view>
+
+  <view class="panel" wx:if="{{nextTopics.length}}">
+    <view class="section-title">下一场建议</view>
+    <view wx:for="{{nextTopics}}" wx:key="id" class="topic-card">
+      <view class="topic-title">{{item.title}}</view>
+      <view class="muted topic-tagline">{{item.tagline}}</view>
+      <view class="topic-meta">{{item.priceText}} · {{item.suggestedScale}} 人 · 保本 {{item.breakEvenText}}</view>
+    </view>
+  </view>
+
+  <view class="panel compact">
+    <view class="small-line">候补 {{metrics.waitlisted}} · 未到场 {{metrics.noShow}} · 拒绝 {{metrics.rejected}} · 取消 {{metrics.cancelled}}</view>
+    <view class="small-line">保本人数 {{metrics.breakEvenAttendees || "—"}} · 预计利润 {{metrics.profitText}}</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-secondary" bindtap="openEvent">活动详情</button>
+    <button class="btn-primary" bindtap="goMy">我的活动</button>
+  </view>
+</view>

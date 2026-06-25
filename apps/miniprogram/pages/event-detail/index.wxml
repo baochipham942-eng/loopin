@@ -14,18 +14,80 @@
 
   <view class="price-row">
     <text class="price">{{event.priceText}}</text>
-    <text class="muted">主办 {{event.organizer}}</text>
+    <view class="host-link" bindtap="openOrganizer" wx:if="{{event.organizerId}}">
+      <text class="muted">主办 {{event.organizer}}</text>
+      <text class="host-arrow">›</text>
+    </view>
+    <text wx:else class="muted">主办 {{event.organizer}}</text>
+  </view>
+
+  <view class="location-card" bindtap="openLocation">
+    <view>
+      <view class="location-title">{{event.venue || '地点待定'}}</view>
+      <view class="muted location-sub">{{event.city || '城市待定'}}</view>
+    </view>
+    <button class="location-btn" catchtap="openLocation">查看位置</button>
+  </view>
+
+  <view wx:if="{{registration && !registration.canRegister}}" class="status-card">
+    <view>
+      <view class="status-title">当前报名状态</view>
+      <view class="muted status-sub">{{registration.statusText}}</view>
+    </view>
+    <button wx:if="{{registration.canCancel}}" class="cancel-inline" catchtap="cancelRegistration" loading="{{cancelling}}">取消报名</button>
   </view>
 
   <view wx:if="{{available !== null}}" class="muted remain">剩余名额 {{available}}</view>
 
+  <view wx:if="{{socialFeatured.length || socialAttendees.length}}" class="section-title">同频的人</view>
+  <view wx:if="{{socialFeatured.length}}" class="people-list">
+    <view wx:for="{{socialFeatured}}" wx:key="id" class="person-card">
+      <view class="person-avatar">{{item.initial}}</view>
+      <view class="person-main">
+        <view class="person-name">{{item.name}} · {{item.kind === 'speaker' ? '讲师' : item.kind === 'host' ? '主理人' : '嘉宾'}}</view>
+        <view class="muted person-headline">{{item.headline}}</view>
+        <view wx:if="{{item.tags.length}}" class="person-tags">
+          <text wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view wx:if="{{socialAttendees.length}}" class="attendee-strip">
+    <text wx:for="{{socialAttendees}}" wx:key="id">{{item.name}} · {{item.headline}}</text>
+  </view>
+  <view wx:if="{{interestSeed}}" class="interest-card">
+    <view>
+      <view class="interest-title">想看更多类似活动？</view>
+      <view class="muted interest-sub">{{interestSeed.city}} · {{interestSeed.topic}}</view>
+    </view>
+    <button class="interest-btn" bindtap="subscribeInterest" loading="{{subscribing}}">
+      {{subscriptionText || '订阅'}}
+    </button>
+  </view>
+
   <view class="section-title">活动亮点</view>
   <view wx:for="{{highlights}}" wx:key="*this" class="highlight">· {{item}}</view>
 
+  <view wx:if="{{agenda.length}}" class="section-title">活动议程</view>
+  <view wx:if="{{agenda.length}}" class="agenda-list">
+    <view wx:for="{{agenda}}" wx:key="*this" class="agenda-item">
+      <text class="agenda-index">{{index + 1}}</text>
+      <text class="agenda-text">{{item}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{faq.length}}" class="section-title">常见问题</view>
+  <view wx:if="{{faq.length}}" class="faq-list">
+    <view wx:for="{{faq}}" wx:key="q" class="faq-item">
+      <view class="faq-q">{{item.q}}</view>
+      <view class="faq-a">{{item.a}}</view>
+    </view>
+  </view>
+
   <view style="height: 160rpx;"></view>
   <view class="footbar">
-    <button class="btn-primary" bindtap="goRegister" disabled="{{available === 0}}">
-      {{available === 0 ? '已售罄' : '立即报名'}}
+    <button class="btn-primary primary-action" bindtap="goRegister" disabled="{{available === 0 || (registration && !registration.canRegister)}}">
+      {{registration && !registration.canRegister ? registration.statusText : available === 0 ? '已售罄' : '立即报名'}}
     </button>
   </view>
 </view>

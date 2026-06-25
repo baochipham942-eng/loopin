@@ -1,4 +1,5 @@
 import { ProxyAgent } from "undici";
+import { jsonrepair } from "jsonrepair";
 
 /** OpenAI 兼容 LLM 客户端（默认接 MiMo / 小米）。海外端点经代理。
  *  配置走 .env：LLM_BASE_URL / LLM_API_KEY / LLM_MODEL / LLM_PROXY。 */
@@ -52,10 +53,10 @@ export async function chatJSON<T>(
     { role: "user", content: user },
   ];
   const maxTokens = opts.maxTokens ?? 2500;
-  // LLM 偶发返回不规整 JSON（概率性，非确定 bug），失败重试一次
+  // LLM 偶发返回不规整 JSON（概率性，非确定 bug）。先 extractJSON（含 jsonrepair 兜底），仍失败再重试。
   let lastErr: unknown;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const raw = await chat(messages, { temperature: opts.temperature ?? 0.5, maxTokens });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const raw = await chat(messages, { temperature: opts.temperature ?? 0.4, maxTokens });
     try {
       return extractJSON<T>(raw);
     } catch (e) {
@@ -65,11 +66,34 @@ export async function chatJSON<T>(
   throw new Error("LLM 返回的 JSON 解析失败（已重试）：" + (lastErr as Error)?.message);
 }
 
-function extractJSON<T>(raw: string): T {
+/**
+ * 从模型输出里提取并解析 JSON。
+ * 1) 去 markdown 围栏；2) 截取最外层 {...} 或 [...]；3) 直接 parse；4) 失败则用 jsonrepair 修复后再 parse
+ *    （修缺逗号/多余逗号/未转义换行/单引号等 LLM 常见瑕疵）。
+ */
+export function extractJSON<T>(raw: string): T {
   let s = raw.trim();
   s = s.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-  const a = s.indexOf("{");
-  const b = s.lastIndexOf("}");
-  if (a >= 0 && b > a) s = s.slice(a, b + 1);
-  return JSON.parse(s) as T;
+  // 截取最外层 JSON 容器（对象或数组）
+  const start = firstJsonStart(s);
+  const end = lastJsonEnd(s);
+  if (start >= 0 && end > start) s = s.slice(start, end + 1);
+  try {
+    return JSON.parse(s) as T;
+  } catch {
+    // 兜底：修复后再 parse；修复仍失败则抛原始解析错误
+    return JSON.parse(jsonrepair(s)) as T;
+  }
+}
+
+function firstJsonStart(s: string): number {
+  const obj = s.indexOf("{");
+  const arr = s.indexOf("[");
+  if (obj < 0) return arr;
+  if (arr < 0) return obj;
+  return Math.min(obj, arr);
+}
+
+function lastJsonEnd(s: string): number {
+  return Math.max(s.lastIndexOf("}"), s.lastIndexOf("]"));
 }

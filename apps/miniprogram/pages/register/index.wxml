@@ -4,14 +4,22 @@
   <view class="title">填写报名信息</view>
   <view class="muted sub">首次填写后，下次参加同主办方活动可一键复用</view>
 
+  <view class="auth-card">
+    <view class="auth-copy">
+      <view class="auth-title">登录状态</view>
+      <view class="muted auth-sub">{{authText}}</view>
+    </view>
+  </view>
+
   <block wx:for="{{schema.fields}}" wx:key="key">
     <view class="field">
-      <text class="label">{{item.label}}{{item.required ? ' *' : ''}}</text>
+      <text class="label">{{item.displayLabel || item.label}}{{item.required ? ' *' : ''}}</text>
 
       <input wx:if="{{item.isText}}" class="ipt" data-key="{{item.key}}"
         bindinput="onInput" placeholder="请输入{{item.label}}" placeholder-class="ph" />
 
       <input wx:elif="{{item.isPhone}}" class="ipt" type="number" data-key="{{item.key}}"
+        value="{{values[item.key] || ''}}"
         bindinput="onInput" placeholder="请输入手机号" placeholder-class="ph" />
 
       <input wx:elif="{{item.isNumber}}" class="ipt" type="number" data-key="{{item.key}}"
@@ -22,6 +30,12 @@
         <view class="ipt picker">{{labels[item.key] || '请选择'}}</view>
       </picker>
 
+      <view wx:elif="{{item.isIdentity}}" class="identity-options">
+        <text wx:for="{{item.options}}" wx:for-item="opt" wx:key="value"
+          class="identity-option {{values[item.key] && values[item.key].indexOf(opt.value) >= 0 ? 'identity-on' : ''}}"
+          data-key="{{item.key}}" data-value="{{opt.value}}" bindtap="onSelectIdentity">{{opt.label}}</text>
+      </view>
+
       <view wx:elif="{{item.isMulti}}" class="chips">
         <text wx:for="{{item.options}}" wx:for-item="opt" wx:key="value"
           class="chip {{values[item.key] && values[item.key].indexOf(opt.value) >= 0 ? 'chip-on' : ''}}"
@@ -30,5 +44,5 @@
     </view>
   </block>
 
-  <button class="btn-primary submit" bindtap="submit" loading="{{submitting}}">提交报名</button>
+  <button class="btn-primary submit" bindtap="submit" loading="{{submitting}}">立即报名</button>
 </view>

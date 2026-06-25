@@ -1,14 +1,29 @@
 {
   "pages": [
+    "pages/events/index",
     "pages/event-detail/index",
+    "pages/organizer/index",
     "pages/register/index",
-    "pages/register-success/index"
+    "pages/register-success/index",
+    "pages/event-review/index",
+    "pages/my/index"
   ],
   "window": {
     "navigationBarTitleText": "Loopin",
     "navigationBarBackgroundColor": "#0e0f1a",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#0e0f1a"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#9aa0c4",
+    "selectedColor": "#00d2ff",
+    "backgroundColor": "#0e0f1a",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/events/index", "text": "活动" },
+      { "pagePath": "pages/my/index", "text": "我的" }
+    ]
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",

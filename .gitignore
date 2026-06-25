@@ -10,6 +10,8 @@ dist/
 .env.*.local
 *.key
 private.*.key
+project.private.config.json
+apps/miniprogram/project.private.config.json
 
 # prisma local db
 *.db

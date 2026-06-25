@@ -16,8 +16,30 @@ model Organizer {
   name        String
   whitelisted Boolean  @default(false)
   hostProfile HostProfile?
+  members     OrganizerMember[]
   events      Event[]
   createdAt   DateTime @default(now())
+}
+
+model OrganizerMember {
+  id          String    @id @default(cuid())
+  organizer   Organizer @relation(fields: [organizerId], references: [id])
+  organizerId String
+  name        String
+  email       String?
+  role        String    @default("staff") // owner/admin/operator/checkin/viewer
+  permissions String    // JSON string[]
+  status      String    @default("active") // active/invited/disabled
+  inviteTokenHash String? @unique
+  inviteExpiresAt DateTime?
+  acceptedAt  DateTime?
+  accessTokenHash String? @unique
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([organizerId, email])
+  @@index([organizerId, status])
 }
 
 model HostProfile {
@@ -36,6 +58,10 @@ model User {
   nickname      String?
   registrations Registration[]
   checkIns      CheckIn[]
+  notificationSubscriptions NotificationSubscription[]
+  eventFeedbacks EventFeedback[]
+  interestSubscriptions InterestSubscription[]
+  attributionEvents AttributionEvent[]
 }
 
 model Event {
@@ -53,12 +79,18 @@ model Event {
   quotas      Quota[]
   forms       RegistrationForm[]
   registrations Registration[]
+  waitlistEntries WaitlistEntry[]
+  notificationSubscriptions NotificationSubscription[]
   budgetPlan  BudgetPlan?
   sponsorPlan SponsorPlan?
   channels    Channel[]
   materials   Material[]
+  resources   EventResource[]
+  socialProfiles EventSocialProfile[]
   agentTasks  AgentTask[]
   review      EventReview?
+  feedbacks   EventFeedback[]
+  attributionEvents AttributionEvent[]
   createdAt   DateTime     @default(now())
 }
 
@@ -79,6 +111,10 @@ model TicketType {
   name      String
   kind      String  // free/approval/paid
   priceCents Int    @default(0)
+  status    String  @default("active") // active/archived（停售，不硬删以保历史订单）
+  earlyBirdPriceCents Int?      // 早鸟价；在 earlyBirdUntil 之前生效
+  earlyBirdUntil      DateTime? // 早鸟截止时间
+  inviteCode          String?   // 邀请码票：非空时下单需带对的码
   // 库存不再挂票种，改由 Quota 配额池承载（多对多），见 docs/04 §3.2
   quotas    TicketTypeQuota[]
   registrations Registration[]
@@ -94,6 +130,7 @@ model Quota {
   used      Int     @default(0) // 已成交占用；扣减用条件原子更新 + CHECK 兜底（见迁移）
   ticketTypes TicketTypeQuota[]
   orders    Order[]
+  waitlistEntries WaitlistEntry[]
 }
 
 // 票种 ↔ 配额 多对多
@@ -122,9 +159,31 @@ model Registration {
   userId       String
   status       String     @default("draft") // 见 core registration.ts
   formValues   String     // JSON
+  checkinToken String?    @unique // 结构化核验 payload 内的防伪 token
+  tag          String?    // 现场重点标记：guest/vip/staff（主办方签到台标记）
   order        Order?
   checkIn      CheckIn?
+  waitlistEntry WaitlistEntry?
+  attributionEvents AttributionEvent[]
   createdAt    DateTime   @default(now())
+}
+
+model WaitlistEntry {
+  id             String       @id @default(cuid())
+  event          Event        @relation(fields: [eventId], references: [id])
+  eventId        String
+  registration   Registration @relation(fields: [registrationId], references: [id])
+  registrationId String       @unique
+  quota          Quota?       @relation(fields: [quotaId], references: [id])
+  quotaId        String?
+  position       Int
+  offerToken     String       @unique
+  status         String       @default("waiting") // waiting/offered/promoted/cancelled/expired
+  offerExpiresAt DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([eventId, status, position])
 }
 
 model Order {
@@ -168,6 +227,25 @@ model CheckIn {
   by             String?      // 工作人员标识
 }
 
+model NotificationSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  type      String   @default("event_reminder")
+  status    String   @default("accepted") // accepted/declined/cancelled
+  reminderAt DateTime
+  sentAt    DateTime?
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, eventId, type])
+  @@index([type, status, reminderAt, sentAt])
+  @@index([eventId, type, status])
+}
+
 model Channel {
   id      String @id @default(cuid())
   event   Event  @relation(fields: [eventId], references: [id])
@@ -183,6 +261,81 @@ model Material {
   channel String // moments/wechat_group/xiaohongshu/official_account/...
   content String
   version Int    @default(1)
+}
+
+model EventResource {
+  id          String   @id @default(cuid())
+  event       Event    @relation(fields: [eventId], references: [id])
+  eventId     String
+  title       String
+  type        String   @default("link") // link/slides/notes/recording/gallery
+  url         String
+  description String?
+  visibility  String  @default("attendee") // attendee/public/organizer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventId, createdAt])
+}
+
+model EventSocialProfile {
+  id          String   @id @default(cuid())
+  event       Event    @relation(fields: [eventId], references: [id])
+  eventId     String
+  kind        String   @default("guest") // host/speaker/guest/attendee
+  name        String
+  headline    String
+  bio         String?
+  avatarUrl   String?
+  tags        String   // JSON string[]
+  links       String?  // JSON {label,url}[]
+  visibility  String   @default("public") // public/attendee/organizer
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([eventId, visibility, kind])
+  @@index([kind, sortOrder])
+}
+
+model InterestSubscription {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  subscriptionKey String
+  topic          String
+  city           String?
+  industry       String?
+  format         String?
+  sourceEventId  String?
+  status         String   @default("active") // active/paused/cancelled
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, subscriptionKey])
+  @@index([status, city, updatedAt])
+}
+
+model TopicSignal {
+  id          String   @id @default(cuid())
+  source      String
+  externalId  String?
+  label       String
+  topic       String
+  city        String?
+  industries  String   // JSON string[]
+  audiences   String   // JSON string[]
+  formats     String   // JSON string[]
+  heat        Int      @default(50)
+  evidence    String
+  opportunity String
+  status      String   @default("active") // active/archived
+  capturedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([source, externalId])
+  @@index([status, updatedAt])
+  @@index([source, status])
 }
 
 model BudgetPlan {
@@ -217,4 +370,53 @@ model EventReview {
   event   Event  @relation(fields: [eventId], references: [id])
   eventId String @unique
   summary String // JSON 复盘数据
+}
+
+model EventFeedback {
+  id           String   @id @default(cuid())
+  event        Event    @relation(fields: [eventId], references: [id])
+  eventId      String
+  user         User?    @relation(fields: [userId], references: [id])
+  userId       String?
+  registrationId String?
+  rating       Int?
+  valuable     String
+  nextTopic    String
+  roleInterest String
+  note         String?
+  answers      String   // JSON，保留问卷原始答案，方便后续扩展问题
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([eventId, userId])
+  @@index([eventId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AttributionEvent {
+  id             String        @id @default(cuid())
+  type           String
+  event          Event?        @relation(fields: [eventId], references: [id])
+  eventId        String?
+  registration   Registration? @relation(fields: [registrationId], references: [id])
+  registrationId String?
+  user           User?         @relation(fields: [userId], references: [id])
+  userId         String?
+  source         String?
+  channel        String?
+  referrer       String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmContent     String?
+  utmTerm        String?
+  path           String?
+  metadata       String?
+  createdAt      DateTime      @default(now())
+
+  @@index([eventId, type, createdAt])
+  @@index([registrationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([utmSource, createdAt])
+  @@index([channel, createdAt])
 }

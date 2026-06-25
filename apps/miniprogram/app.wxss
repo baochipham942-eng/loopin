@@ -4,6 +4,7 @@ page {
   font-family: -apple-system, "PingFang SC", sans-serif;
 }
 .container { padding: 32rpx; }
+.tab-page { padding-bottom: calc(176rpx + env(safe-area-inset-bottom)); }
 .btn-primary {
   background: linear-gradient(90deg, #6c5ce7, #00d2ff);
   color: #fff;

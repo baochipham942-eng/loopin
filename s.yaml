@@ -21,9 +21,7 @@ resources:
       customRuntimeConfig:
         command:
           - /var/fc/lang/nodejs20/bin/node
-          - --import
-          - tsx
-          - src/server.ts
+          - dist/server.js
         port: 8787
       triggers:
         - triggerName: http-trigger
@@ -36,19 +34,45 @@ resources:
               - PUT
               - DELETE
               - OPTIONS
+        - triggerName: sweep-expired-timer
+          triggerType: timer
+          triggerConfig:
+            cronExpression: "@every 10m"
+            enable: true
+            payload: '{"task":"sweepExpired"}'
+        - triggerName: event-reminder-timer
+          triggerType: timer
+          triggerConfig:
+            cronExpression: "@every 15m"
+            enable: true
+            payload: '{"task":"sendEventReminders"}'
+        - triggerName: topic-signal-sync-timer
+          triggerType: timer
+          triggerConfig:
+            cronExpression: "@every 6h"
+            enable: true
+            payload: '{"task":"syncTopicSignals"}'
       environmentVariables:
         PORT: "8787"
         NODE_ENV: "production"
         PUBLIC_BASE_URL: "https://loopin.llmxy.xyz"
-        DATABASE_URL: ${env(DATABASE_URL)}
+        BACKOFFICE_ADMIN_TOKEN: ${env(BACKOFFICE_ADMIN_TOKEN)}
+        DATABASE_URL: ${env(FC_DATABASE_URL)}
+        WX_APPID: "wxfb83ad53ee194fe3"
+        WX_APPSECRET: ${env(WX_APPSECRET)}
+        WX_SUBSCRIBE_EVENT_TEMPLATE_ID: ${env(WX_SUBSCRIBE_EVENT_TEMPLATE_ID)}
+        WX_EVENT_REMINDER_LEAD_MINUTES: ${env(WX_EVENT_REMINDER_LEAD_MINUTES)}
+        WX_SUBSCRIBE_MINIPROGRAM_STATE: ${env(WX_SUBSCRIBE_MINIPROGRAM_STATE)}
+        TOPIC_SIGNAL_FEED_URLS: ${env(TOPIC_SIGNAL_FEED_URLS)}
         LLM_BASE_URL: ${env(LLM_BASE_URL)}
         LLM_API_KEY: ${env(LLM_API_KEY)}
         LLM_MODEL: ${env(LLM_MODEL)}
         LLM_PROXY: ""
-      customDomains:
-        - domainName: loopin.llmxy.xyz
-          protocol: HTTPS
+      customDomain:
+        domainName: loopin.llmxy.xyz
+        protocol: HTTP,HTTPS
+        route:
+          path: /*
+          qualifier: LATEST
+        certConfig:
           certId: ${env(ALIYUN_FC_CERT_ID)}
-          routeConfigs:
-            - path: /*
-              functionName: "loopin-api"

@@ -1,0 +1,67 @@
+<view wx:if="{{loading}}" class="container tab-page"><view class="muted">加载中…</view></view>
+
+<view wx:elif="{{!items.length}}" class="container tab-page empty">
+  <view class="empty-title">还没有报名记录</view>
+  <view class="muted empty-sub">报名成功后，活动状态和票据会出现在这里。</view>
+  <button class="btn-primary empty-action" bindtap="goEvents">去看活动</button>
+  <template is="interestFeed" data="{{feed: feed, feedLoading: feedLoading}}" />
+</view>
+
+<view wx:else class="container tab-page">
+  <view class="head-row">
+    <view>
+      <view class="title">我的活动</view>
+      <view class="muted sub">报名状态、票种和现场核验信息</view>
+    </view>
+  </view>
+
+  <view wx:for="{{items}}" wx:key="registrationId" class="ticket" bindtap="openEvent" data-event-id="{{item.eventId}}">
+    <view class="ticket-head">
+      <view class="ticket-title">{{item.title}}</view>
+      <view class="status">{{item.statusText}}</view>
+    </view>
+    <view class="muted line">{{item.startText}} · {{item.venue || item.city}}</view>
+    <view class="line">{{item.ticketName}} · {{item.priceText}}</view>
+    <view wx:if="{{item.checkinPayload}}" class="code-row">
+      <view class="code">核验码 {{item.checkinShortCode}}</view>
+      <button class="copy-code" catchtap="copyCheckin" data-payload="{{item.checkinPayload}}">复制</button>
+    </view>
+    <view wx:if="{{item.canReview}}" class="review-row">
+      <button class="review-btn" catchtap="openReview" data-event-id="{{item.eventId}}">{{item.reviewText}}</button>
+    </view>
+    <view wx:if="{{item.canCancel}}" class="ticket-actions">
+      <button class="cancel-btn" catchtap="cancelRegistration" data-registration-id="{{item.registrationId}}">取消报名</button>
+    </view>
+  </view>
+  <template is="interestFeed" data="{{feed: feed, feedLoading: feedLoading}}" />
+</view>
+
+<template name="interestFeed">
+  <view class="interest-section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">兴趣订阅</view>
+        <view class="muted section-sub">按你订阅的方向发现活动和同频的人</view>
+      </view>
+    </view>
+    <view wx:if="{{feedLoading}}" class="muted">加载中…</view>
+    <view wx:elif="{{!feed.subscriptions.length}}" class="muted">在活动详情页订阅方向后，会在这里出现推荐。</view>
+    <view wx:else>
+      <view class="sub-tags">
+        <text wx:for="{{feed.subscriptions}}" wx:key="id">{{item.city || '不限城市'}} · {{item.topic}}</text>
+      </view>
+      <view wx:if="{{feed.events.length}}" class="feed-list">
+        <view wx:for="{{feed.events}}" wx:key="id" class="feed-card" bindtap="openEvent" data-event-id="{{item.id}}">
+          <view class="feed-title">{{item.title}}</view>
+          <view class="muted feed-line">{{item.startText}} · {{item.city}} · {{item.priceText}}</view>
+        </view>
+      </view>
+      <view wx:if="{{feed.people.length}}" class="people-feed">
+        <view wx:for="{{feed.people}}" wx:key="id" class="person-feed-row">
+          <view class="person-feed-name">{{item.name}}</view>
+          <view class="muted person-feed-headline">{{item.headline}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>

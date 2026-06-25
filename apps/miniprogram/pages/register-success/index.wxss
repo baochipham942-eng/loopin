@@ -2,4 +2,13 @@
 .ok { font-size: 120rpx; }
 .status { font-size: 38rpx; font-weight: 700; margin: 30rpx 0 14rpx; text-align: center; }
 .tips { font-size: 24rpx; text-align: center; }
-.back { margin-top: 60rpx; width: 60%; }
+.notify {
+  margin-top: 42rpx; width: 60%; border-radius: 999rpx; font-size: 30rpx;
+  color: #eef0ff; background: #171a2c; border: 1rpx solid #343857;
+  padding: 20rpx 0;
+}
+.notify-text { margin-top: 18rpx; font-size: 24rpx; text-align: center; }
+.back { margin-top: 34rpx; width: 60%; }
+.btn-link {
+  margin-top: 22rpx; color: #9aa0c4; background: transparent; border: none; font-size: 26rpx;
+}

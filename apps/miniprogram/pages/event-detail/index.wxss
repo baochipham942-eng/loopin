@@ -8,8 +8,84 @@
 .meta { font-size: 26rpx; margin-top: 12rpx; }
 .price-row { display: flex; justify-content: space-between; align-items: baseline; margin: 24rpx 0; }
 .price { font-size: 40rpx; font-weight: 700; color: #00d2ff; }
+.location-card, .status-card {
+  margin: 18rpx 0; padding: 20rpx; border-radius: 20rpx;
+  background: #15172a; border: 1rpx solid #2b3050;
+  display: flex; align-items: center; justify-content: space-between; gap: 18rpx;
+}
+.location-card > view, .status-card > view { min-width: 0; flex: 1; }
+.location-title, .status-title { font-size: 28rpx; font-weight: 700; line-height: 1.45; color: #eef0ff; }
+.location-sub, .status-sub { font-size: 24rpx; line-height: 1.45; margin-top: 4rpx; }
+.location-btn, .cancel-inline {
+  width: 154rpx; min-height: 60rpx; line-height: 60rpx; padding: 0; margin: 0;
+  border-radius: 999rpx; font-size: 25rpx; border: 1rpx solid #2f3455;
+  background: #0e1020; color: #eef0ff;
+}
+.cancel-inline {
+  width: 150rpx; color: #ffd4dc; border-color: #e85d7555; background: #e85d7518;
+}
+.location-btn::after, .cancel-inline::after { border: none; }
 .section-title { font-size: 30rpx; font-weight: 600; margin: 28rpx 0 14rpx; }
 .tags { display: flex; flex-wrap: wrap; gap: 14rpx; }
 .tag { font-size: 24rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: #ffffff10; color: #9aa0c4; }
+.people-list { display: flex; flex-direction: column; gap: 14rpx; }
+.person-card {
+  display: flex; gap: 18rpx; align-items: flex-start;
+  padding: 20rpx; border-radius: 20rpx; background: #16182a;
+}
+.person-avatar {
+  width: 72rpx; height: 72rpx; flex: 0 0 72rpx; border-radius: 999rpx;
+  background: #00d2ff22; color: #00d2ff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30rpx; font-weight: 700;
+}
+.person-main { min-width: 0; flex: 1; }
+.person-name { font-size: 28rpx; font-weight: 700; color: #eef0ff; line-height: 1.45; }
+.person-headline { font-size: 24rpx; line-height: 1.5; margin-top: 4rpx; }
+.person-tags { display: flex; flex-wrap: wrap; gap: 8rpx; margin-top: 10rpx; }
+.person-tags text {
+  max-width: 100%; padding: 5rpx 12rpx; border-radius: 999rpx;
+  background: #ffffff10; color: #9aa0c4; font-size: 22rpx;
+}
+.attendee-strip { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 14rpx; }
+.attendee-strip text {
+  max-width: 100%; padding: 8rpx 14rpx; border-radius: 999rpx;
+  background: #2ec27e18; color: #7ef0ba; font-size: 23rpx;
+}
+.interest-card {
+  margin-top: 18rpx; padding: 18rpx 20rpx; border-radius: 20rpx;
+  background: #ffffff0a; display: flex; align-items: center; gap: 18rpx;
+}
+.interest-card > view { min-width: 0; flex: 1; }
+.interest-title { font-size: 27rpx; font-weight: 700; color: #eef0ff; }
+.interest-sub { font-size: 23rpx; line-height: 1.45; margin-top: 4rpx; }
+.interest-btn {
+  width: 146rpx; flex: 0 0 146rpx; margin: 0; padding: 16rpx 0;
+  border-radius: 999rpx; background: #00d2ff; color: #08101c;
+  font-size: 25rpx; font-weight: 700;
+}
+.interest-btn::after { border: none; }
 .highlight { font-size: 28rpx; line-height: 1.9; }
-.footbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom)); background: #0e0f1a; }
+.agenda-list, .faq-list { display: flex; flex-direction: column; gap: 14rpx; }
+.agenda-item {
+  display: flex; align-items: flex-start; gap: 16rpx;
+  padding: 18rpx 20rpx; border-radius: 18rpx; background: #16182a;
+}
+.agenda-index {
+  width: 38rpx; height: 38rpx; flex: 0 0 38rpx;
+  border-radius: 999rpx; background: #00d2ff22; color: #00d2ff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22rpx; font-weight: 700;
+}
+.agenda-text { flex: 1; font-size: 27rpx; line-height: 1.55; color: #eef0ff; }
+.faq-item { padding: 20rpx; border-radius: 18rpx; background: #ffffff0a; }
+.faq-q { font-size: 27rpx; font-weight: 700; line-height: 1.5; }
+.faq-a { margin-top: 8rpx; font-size: 25rpx; line-height: 1.6; color: #9aa0c4; }
+.footbar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: #0e0f1a; display: flex;
+}
+.primary-action { flex: 1; margin: 0; }
+.host-link { display: flex; align-items: baseline; gap: 4rpx; }
+.host-link .host-arrow { color: #00d2ff; font-size: 30rpx; }
