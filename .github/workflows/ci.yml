@@ -26,7 +26,5 @@ jobs:
         run: pnpm --filter @loopin/core test
       - name: Initialize API test database
         run: pnpm --filter @loopin/api db:push
-      - name: Initialize API test database
-        run: pnpm --filter @loopin/api db:push
       - name: Test API package
         run: pnpm --filter @loopin/api test
